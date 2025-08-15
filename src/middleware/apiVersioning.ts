@@ -1,25 +1,22 @@
-import type { Request, Response, NextFunction } from "express";
+import { Router } from "express";
 
-export const urlVersioning =
-  (version: string) => (req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith(`/api/${version}`)) {
-      next();
-    } else {
-      res.status(404).json({
+export const urlVersioning = (version: string, router: Router) => {
+  const prefixedRouter = Router();
+
+  // Middleware to reject unsupported versions
+  prefixedRouter.use((req, res, next) => {
+    const requestedVersion = req.path.split("/")[1]; // e.g. "v2" from "/v2/supported"
+    if (requestedVersion !== version) {
+      return res.status(404).json({
         success: false,
-        error: "Api version is not supported",
+        error: `API version '${requestedVersion}' is not supported. Supported version: '${version}'`,
       });
     }
-  };
+    next();
+  });
 
-export const headerVersion =
-  (version: string) => (req: Request, res: Response, next: NextFunction) => {
-    if (req.get("Accept-Version") === version) {
-      next();
-    } else {
-      res.status(404).json({
-        success: false,
-        error: "Api version is not supported",
-      });
-    }
-  };
+  // Mount routes
+  prefixedRouter.use(`/${version}`, router);
+
+  return prefixedRouter;
+};

@@ -6,10 +6,15 @@ import type { Express } from "express";
 import logger from "./utils/logger";
 import { urlVersioning } from "./middleware/apiVersioning";
 import { errorHandler } from "./middleware/errorHandler";
+// import Redis from "ioredis";
+import currencyRoute from "./routes/currencyRoutes";
 
 dotenv.config();
 const app: Express = express();
 const PORT = process.env.PORT;
+
+///added the ! at the end to tell ts we know its not undefined since it kept throwing errors
+// const redisClient = new Redis(process.env.REDIS_URL!);
 
 //middleware
 app.use(helmet());
@@ -35,7 +40,10 @@ app.use((req, res, next) => {
 });
 
 ///versioning
-app.use("/api/v1", urlVersioning("v1"));
+// app.use("/api/v1", urlVersioning("v1"));
+
+// app.use("/", currencyRoute);
+app.use("/api", urlVersioning("v1", currencyRoute));
 
 // Global error handler
 app.use(errorHandler);
