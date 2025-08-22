@@ -22,12 +22,6 @@ const config = {
     },
   },
 
-  // Cache Configuration
-  cache: {
-    ttl: 300, // 5 minutes in seconds
-    maxSize: 100, // maximum number of cached items
-  },
-
   // Rate Limiting
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes

@@ -59,7 +59,30 @@ const getCurrenciesFrankfurter = async (req: Request, res: Response) => {
 
 const getAllServiceCurrencies = async (req: Request, res: Response) => {
   try {
+    const cacheKey = "supported:currencies";
+
+    //try cache first
+    const cachedCurrencies = await req.redisClient.get(cacheKey);
+    if (cachedCurrencies) {
+      return res.status(200).json({
+        success: true,
+        message: "Successfully retrieved supported currencies (from cache)",
+        data: JSON.parse(cachedCurrencies),
+      });
+    }
+
+    //otherwise fetch fresh
     const result = await getAllCurrencies();
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "No data received from getAllCurrencies",
+      });
+    }
+
+    //Save in cache 12h
+    await req.redisClient.setex(cacheKey, 43200, JSON.stringify(result));
 
     res.status(200).json({
       success: true,
@@ -123,7 +146,28 @@ const getFrankRateRates = async (req: Request, res: Response) => {
 
 const getAllServicesRates = async (req: Request, res: Response) => {
   try {
+    const cacheKey = "rates";
+
+    //try cache first
+    const cachedRates = await req.redisClient.get(cacheKey);
+    if (cachedRates) {
+      return res.status(200).json({
+        success: true,
+        message: "Successfully retrieved rates (from cache)",
+        data: JSON.parse(cachedRates),
+      });
+    }
+
     const result = await getAllRates();
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "No data received from getAllCurrencies",
+      });
+    }
+
+    //Save in cache 12h
+    await req.redisClient.setex(cacheKey, 43200, JSON.stringify(result));
 
     res.status(200).json({
       success: true,
