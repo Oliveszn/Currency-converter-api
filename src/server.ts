@@ -8,6 +8,8 @@ import { urlVersioning } from "./middleware/apiVersioning";
 import { errorHandler } from "./middleware/errorHandler";
 import Redis from "ioredis";
 import currencyRoute from "./routes/currencyRoutes";
+import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
 
 dotenv.config();
 const app: Express = express();
@@ -24,6 +26,22 @@ declare global {
 
 ///added the ! at the end to tell ts we know its not undefined since it kept throwing errors
 const redisClient = new Redis(process.env.REDIS_URL!);
+
+// rate limiting
+const limiter = rateLimit({
+  store: new RedisStore({
+    sendCommand: (...args: [string, ...string[]]) =>
+      redisClient.call(args[0], ...args.slice(1)) as any,
+  }),
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 reqs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+});
 
 //middleware
 app.use(helmet());
@@ -56,6 +74,7 @@ app.use(
     req.redisClient = redisClient;
     next();
   },
+  limiter,
   urlVersioning("v1", currencyRoute)
 );
 // app.use("/api", urlVersioning("v1", currencyRoute));
