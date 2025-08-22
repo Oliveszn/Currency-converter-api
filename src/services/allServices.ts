@@ -69,23 +69,28 @@ const getAllRates = async () => {
     const exchangeRates: Record<string, number> = exchangeResult.rates;
 
     // merge both apis
-    const combined: Record<string, number> = {};
+    const bestRate: Record<string, number> = {};
+    ///we loop through the first api and store it in bestrate which is a hashmap
     for (const [currency, rate] of Object.entries(exchangeRates)) {
-      combined[currency] = rate;
+      bestRate[currency] = rate;
     }
+
+    //here we loop through the second api but store in bestrate on condition
     for (const [currency, rate] of Object.entries(frankRates)) {
-      if (combined[currency]) {
-        combined[currency] = Math.min(combined[currency], rate);
+      if (bestRate[currency]) {
+        // first condition here, we say if the a currency already exists in the hashmap, we choose the lowest/best rate
+        bestRate[currency] = Math.min(bestRate[currency], rate);
       } else {
-        combined[currency] = rate;
+        //// if its not yet present we add it
+        bestRate[currency] = rate;
       }
     }
 
     return {
       success: true,
       baseCurrency: "USD",
-      count: Object.keys(combined).length,
-      rates: combined,
+      count: Object.keys(bestRate).length,
+      rates: bestRate,
       sources: ["frankfurter", "exchangeRateAPI"],
       lastUpdated: new Date().toISOString(),
     };
@@ -94,4 +99,28 @@ const getAllRates = async () => {
   }
 };
 
-export { getAllCurrencies, getAllRates };
+/// the logic revolves around basecurrencies which is usd, we do amount * rate[tocurrency] / rate[fromCurrency]
+/// eg: 1 usd = 1600ngn and 1 usd = 0.92 eur
+/// converting 1000ngn to eur 1000(amount) * 0.92 rate[tocurrency] / 1600 rate[fromCurrency]
+const convertCurrency = (
+  amount: number,
+  from: string,
+  to: string,
+  rates: Record<string, number>
+) => {
+  if (!rates[from] || !rates[to]) {
+    throw new Error("Unsupported currency");
+  }
+  const converted = amount * (rates[to] / rates[from]);
+
+  return {
+    amount,
+    from,
+    to,
+    converted,
+    rate: rates[to] / rates[from],
+    timestamp: new Date().toISOString(),
+  };
+};
+
+export { getAllCurrencies, getAllRates, convertCurrency };

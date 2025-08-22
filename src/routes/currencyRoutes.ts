@@ -6,6 +6,7 @@ import {
   getExchangeRateRates,
   getFrankRateRates,
   getAllServicesRates,
+  convertAllCurrency,
 } from "../controller/currencyController";
 
 const router = express.Router();
@@ -19,4 +20,7 @@ router.get("/supported/3", getAllServiceCurrencies);
 router.get("/rates/1", getExchangeRateRates);
 router.get("/rates/2", getFrankRateRates);
 router.get("/rates/3", getAllServicesRates);
+
+///CONVERSION
+router.post("/convert", convertAllCurrency);
 export default router;

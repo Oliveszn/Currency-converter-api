@@ -8,7 +8,11 @@ import {
   getFrankRates,
   getSupportedCurrenciesFrankFurter,
 } from "../services/frankfurterservice";
-import { getAllCurrencies, getAllRates } from "../services/allServices";
+import {
+  convertCurrency,
+  getAllCurrencies,
+  getAllRates,
+} from "../services/allServices";
 
 ///FOR GETTING SUPPORTED CURENCIES
 const getCurrencies = async (req: Request, res: Response) => {
@@ -138,6 +142,28 @@ const getAllServicesRates = async (req: Request, res: Response) => {
   }
 };
 
+////// CONVERTING CURRENCY
+const convertAllCurrency = async (req: Request, res: Response) => {
+  try {
+    const { amount, from, to } = req.body;
+    const { rates } = await getAllRates();
+
+    const result = convertCurrency(amount, from, to, rates);
+
+    res.status(200).json({
+      success: true,
+      message: "Currency conversion successful",
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: "Currency conversion failed",
+      error: error.message,
+    });
+  }
+};
+
 export {
   getCurrencies,
   getCurrenciesFrankfurter,
@@ -145,4 +171,5 @@ export {
   getExchangeRateRates,
   getFrankRateRates,
   getAllServicesRates,
+  convertAllCurrency,
 };
