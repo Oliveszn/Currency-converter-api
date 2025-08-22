@@ -17,7 +17,7 @@ const config = {
     // Ready for your second API
     frankfuter: {
       // key: process.env.FIXER_API_KEY,
-      baseUrl: "https://api.frankfurter.dev/v1/currencies",
+      baseUrl: "https://api.frankfurter.dev/v1",
       timeout: 5000,
     },
   },

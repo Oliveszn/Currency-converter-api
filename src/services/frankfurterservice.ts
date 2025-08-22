@@ -28,7 +28,7 @@ const client = axios.create({
 
 const getSupportedCurrenciesFrankFurter = async () => {
   try {
-    const url = `${config.apis.frankfuter.baseUrl}`;
+    const url = `${config.apis.frankfuter.baseUrl}/currencies`;
 
     logger.info(`📡 Fetching supported currencies from: ${url}`);
 
@@ -48,9 +48,35 @@ const getSupportedCurrenciesFrankFurter = async () => {
       throw new Error("Frankfurter API returned unexpected format");
     }
   } catch (error: any) {
-    logger.error("❌ ExchangeRate API Error:", error.message);
+    logger.error("Frankfurter API Error:", error.message);
     throw handleApiError("Frankfurter API", error);
   }
 };
 
-export { getSupportedCurrenciesFrankFurter };
+const getFrankRates = async (baseCurrency = "USD") => {
+  try {
+    const url = `${
+      config.apis.frankfuter.baseUrl
+    }/latest?base=${baseCurrency.toLocaleUpperCase()}`;
+
+    const response = await client.get(url);
+
+    if (response.data && response.data.rates) {
+      return {
+        amount: response.data.amount,
+        success: true,
+        source: "frankfurter-api",
+        baseCurrency: response.data.base,
+        rates: response.data.rates,
+        lastUpdated: response.data.date,
+      };
+    } else {
+      throw new Error("Unexpected Frankfurter response format");
+    }
+  } catch (error: any) {
+    logger.error("Frankfurter API Error:", error.message);
+    throw handleApiError("Frankfurter API", error);
+  }
+};
+
+export { getSupportedCurrenciesFrankFurter, getFrankRates };

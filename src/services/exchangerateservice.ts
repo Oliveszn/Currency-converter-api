@@ -53,7 +53,7 @@ const getSupportedCurrencies = async () => {
       throw new Error(`API returned error: ${response.data["error-type"]}`);
     }
   } catch (error: any) {
-    logger.error("❌ ExchangeRate API Error:", error.message);
+    logger.error("ExchangeRate API Error:", error.message);
     throw handleApiError("ExchangeRate API", error);
   }
 };
@@ -80,7 +80,7 @@ const getExchangeRates = async (baseCurrency = "USD") => {
       throw new Error(`API returned error: ${response.data["error-type"]}`);
     }
   } catch (error: any) {
-    logger.error("❌ ExchangeRate API Error:", error.message);
+    logger.error("ExchangeRate API Error:", error.message);
     throw handleApiError("ExchangeRate API", error);
   }
 };
