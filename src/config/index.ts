@@ -15,11 +15,11 @@ const config = {
       timeout: 5000,
     },
     // Ready for your second API
-    // fixer: {
-    //   key: process.env.FIXER_API_KEY,
-    //   baseUrl: 'http://data.fixer.io/api',
-    //   timeout: 5000
-    // }
+    frankfuter: {
+      // key: process.env.FIXER_API_KEY,
+      baseUrl: "https://api.frankfurter.dev/v1/currencies",
+      timeout: 5000,
+    },
   },
 
   // Cache Configuration

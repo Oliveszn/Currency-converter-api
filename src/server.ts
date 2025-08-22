@@ -40,9 +40,6 @@ app.use((req, res, next) => {
 });
 
 ///versioning
-// app.use("/api/v1", urlVersioning("v1"));
-
-// app.use("/", currencyRoute);
 app.use("/api", urlVersioning("v1", currencyRoute));
 
 // Global error handler

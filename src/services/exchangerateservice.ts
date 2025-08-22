@@ -31,7 +31,7 @@ const getSupportedCurrencies = async () => {
 
     logger.info(`📡 Fetching supported currencies from: ${url}`);
 
-    const response = await axios.get(url);
+    const response = await client.get(url);
 
     if (response.data.result === "success") {
       const currencies: Record<string, string> = {};
