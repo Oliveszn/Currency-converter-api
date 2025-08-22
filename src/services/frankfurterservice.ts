@@ -1,29 +1,30 @@
 import axios from "axios";
 import config from "../config/index";
 import logger from "../utils/logger";
+import { handleApiError } from "../middleware/errorHandler";
 
 const client = axios.create({
   timeout: config.apis.exchangeRate.timeout,
   headers: { "Content-Type": "application/json" },
 });
 
-const handleError = (error: any) => {
-  if (error.code === "ECONNABORTED") {
-    return new Error(
-      "Request timeout - Frankfurter API is taking too long to respond"
-    );
-  } else if (error.response) {
-    return new Error(
-      `Frankfurter API error: ${error.response.status} - ${
-        error.response.data?.["error-type"] || error.response.statusText
-      }`
-    );
-  } else if (error.request) {
-    return new Error("Unable to reach Frankfurter API - network error");
-  } else {
-    return new Error(`Frankfurter API service error: ${error.message}`);
-  }
-};
+// const handleError = (error: any) => {
+//   if (error.code === "ECONNABORTED") {
+//     return new Error(
+//       "Request timeout - Frankfurter API is taking too long to respond"
+//     );
+//   } else if (error.response) {
+//     return new Error(
+//       `Frankfurter API error: ${error.response.status} - ${
+//         error.response.data?.["error-type"] || error.response.statusText
+//       }`
+//     );
+//   } else if (error.request) {
+//     return new Error("Unable to reach Frankfurter API - network error");
+//   } else {
+//     return new Error(`Frankfurter API service error: ${error.message}`);
+//   }
+// };
 
 const getSupportedCurrenciesFrankFurter = async () => {
   try {
@@ -48,7 +49,7 @@ const getSupportedCurrenciesFrankFurter = async () => {
     }
   } catch (error: any) {
     logger.error("❌ ExchangeRate API Error:", error.message);
-    throw handleError(error);
+    throw handleApiError("Frankfurter API", error);
   }
 };
 

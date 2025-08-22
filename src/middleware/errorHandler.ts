@@ -17,6 +17,23 @@ interface ExtendedError extends Error {
   column?: string;
 }
 
+const handleApiError = (service: string, error: any) => {
+  if (error.code === "ECONNABORTED") {
+    return new ApiError(`${service} timeout - took too long to respond`, 504);
+  } else if (error.response) {
+    return new ApiError(
+      `${service} error: ${error.response.status} - ${
+        error.response.data?.["error-type"] || error.response.statusText
+      }`,
+      error.response.status
+    );
+  } else if (error.request) {
+    return new ApiError(`Unable to reach ${service} - network error`, 503);
+  } else {
+    return new ApiError(`${service} service error: ${error.message}`, 500);
+  }
+};
+
 const errorHandler = (
   err: ExtendedError | undefined,
   req: Request,
@@ -48,46 +65,6 @@ const errorHandler = (
       code: err.code || null,
     },
   });
-
-  // Handle PostgreSQL specific errors
-  if (err.code) {
-    switch (err.code) {
-      // Unique violation (duplicate key)
-      case "23505":
-        const field = err.detail?.match(/Key \((.+?)\)=/)?.[1] || "field";
-        error = new ConflictError(`${field} already exists`);
-        break;
-
-      // Not null violation
-      case "23502":
-        const column = err.column || "required field";
-        error = new ValidationError(`${column} is required`);
-        break;
-
-      // Foreign key violation
-      case "23503":
-        error = new ValidationError("Referenced record does not exist");
-        break;
-
-      // Check constraint violation
-      case "23514":
-        error = new ValidationError("Data violates database constraints");
-        break;
-
-      // Invalid input syntax
-      case "22P02":
-        error = new ValidationError("Invalid data format");
-        break;
-
-      // Connection errors
-      case "ECONNREFUSED":
-      case "ENOTFOUND":
-      case "ETIMEDOUT":
-        error = new ApiError("Database connection failed", 500);
-        error.isOperational = false;
-        break;
-    }
-  }
 
   // Special handling for common error types
   if (err.name === "ValidationError") {
@@ -143,4 +120,4 @@ const asyncHandler = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
   };
 };
 
-export { errorHandler, asyncHandler };
+export { handleApiError, errorHandler, asyncHandler };

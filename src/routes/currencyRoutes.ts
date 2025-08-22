@@ -6,7 +6,7 @@ import {
 
 const router = express.Router();
 
-// router.get("/supported", getCurrencies);
-router.get("/supported", getCurrenciesFrankfurter);
+router.get("/supported/1", getCurrencies);
+router.get("/supported/2", getCurrenciesFrankfurter);
 
 export default router;
