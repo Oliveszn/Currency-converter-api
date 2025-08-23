@@ -8,24 +8,6 @@ const client = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// const handleError = (error: any) => {
-//   if (error.code === "ECONNABORTED") {
-//     return new Error(
-//       "Request timeout - ExchangeRate API is taking too long to respond"
-//     );
-//   } else if (error.response) {
-//     return new Error(
-//       `ExchangeRate API error: ${error.response.status} - ${
-//         error.response.data?.["error-type"] || error.response.statusText
-//       }`
-//     );
-//   } else if (error.request) {
-//     return new Error("Unable to reach ExchangeRate API - network error");
-//   } else {
-//     return new Error(`ExchangeRate API service error: ${error.message}`);
-//   }
-// };
-
 const getSupportedCurrencies = async () => {
   try {
     const url = `${config.apis.exchangeRate.baseUrl}/${config.apis.exchangeRate.key}/codes`;

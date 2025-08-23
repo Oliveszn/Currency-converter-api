@@ -8,24 +8,6 @@ const client = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// const handleError = (error: any) => {
-//   if (error.code === "ECONNABORTED") {
-//     return new Error(
-//       "Request timeout - Frankfurter API is taking too long to respond"
-//     );
-//   } else if (error.response) {
-//     return new Error(
-//       `Frankfurter API error: ${error.response.status} - ${
-//         error.response.data?.["error-type"] || error.response.statusText
-//       }`
-//     );
-//   } else if (error.request) {
-//     return new Error("Unable to reach Frankfurter API - network error");
-//   } else {
-//     return new Error(`Frankfurter API service error: ${error.message}`);
-//   }
-// };
-
 const getSupportedCurrenciesFrankFurter = async () => {
   try {
     const url = `${config.apis.frankfuter.baseUrl}/currencies`;
