@@ -12,17 +12,37 @@ import type {
   CurrencyResponse,
   RateResponse,
 } from "../types";
+import logger from "../utils/logger";
 
 const getAllCurrencies = async (): Promise<CurrencyResponse> => {
   try {
-    // fetch from Frankfurter
-    const frankfurterResult = await getSupportedCurrenciesFrankFurter();
-    const frankfurterCurrencies =
-      frankfurterResult.currencies ?? frankfurterResult;
+    const [frankfurterResult, exchangeResult] = await Promise.allSettled([
+      getSupportedCurrenciesFrankFurter(),
+      getSupportedCurrencies(),
+    ]);
+    let frankfurterCurrencies = {};
+    let exchangeCurrencies = {};
 
-    // fetch from ExchangeRate API
-    const exchangeResult = await getSupportedCurrencies();
-    const exchangeCurrencies = exchangeResult.currencies;
+    if (frankfurterResult.status === "fulfilled") {
+      frankfurterCurrencies =
+        frankfurterResult.value.currencies ?? frankfurterResult;
+    } else {
+      logger.warn("Frankfurter API failed:", frankfurterResult.reason);
+    }
+
+    if (exchangeResult.status === "fulfilled") {
+      exchangeCurrencies = exchangeResult.value.currencies;
+    } else {
+      logger.warn("ExchangeRate API failed:", exchangeResult.reason);
+    }
+
+    // If both APIs failed, throw error
+    if (
+      Object.keys(frankfurterCurrencies).length === 0 &&
+      Object.keys(exchangeCurrencies).length === 0
+    ) {
+      throw new Error("All rate providers are currently unavailable");
+    }
 
     //normalize ExchangeRate API (they don’t return names, just codes)
     //here we have to normalize it in such a way that both api match, frankfurter returns both names and code eg: NGN: Nigerian naira
@@ -50,11 +70,17 @@ const getAllCurrencies = async (): Promise<CurrencyResponse> => {
         return acc;
       }, {});
 
+    const availableSources = [
+      ...(Object.keys(exchangeNormalized).length > 0 ? ["frankfurter"] : []),
+      ...(Object.keys(frankfurterCurrencies).length > 0
+        ? ["exchangeRateAPI"]
+        : []),
+    ];
     return {
       success: true,
       count: Object.keys(uniqueCurrencies).length,
       currencies: uniqueCurrencies,
-      source: ["frankfurter", "exchangeRateAPI"],
+      source: availableSources,
       lastUpdated: new Date().toISOString(),
     };
   } catch (err: any) {
@@ -64,13 +90,37 @@ const getAllCurrencies = async (): Promise<CurrencyResponse> => {
 
 const getAllRates = async (): Promise<RateResponse> => {
   try {
-    ///from frankfurter
-    const frankfurterResult = await getFrankRates();
-    const frankRates: Record<string, number> = frankfurterResult.rates;
+    // Promise.allSettled is a better way of handling multiple promises, it resolves when all promises are either--
+    // fulfilled or rejected, better than using promise.all whichwill reject if any of the promise reject
+    const [frankfurterResult, exchangeResult] = await Promise.allSettled([
+      getFrankRates(),
+      getExchangeRates(),
+    ]);
 
-    // fetch from ExchangeRate API
-    const exchangeResult = await getExchangeRates();
-    const exchangeRates: Record<string, number> = exchangeResult.rates;
+    //we create a hashmap to store if successful
+    let frankRates: Record<string, number> = {};
+    let exchangeRates: Record<string, number> = {};
+
+    // and we do store
+    if (frankfurterResult.status === "fulfilled") {
+      frankRates = frankfurterResult.value.rates;
+    } else {
+      logger.warn("Frankfurter API failed:", frankfurterResult.reason);
+    }
+
+    if (exchangeResult.status === "fulfilled") {
+      exchangeRates = exchangeResult.value.rates;
+    } else {
+      logger.warn("ExchangeRate API failed:", exchangeResult.reason);
+    }
+
+    // If both APIs failed, throw error
+    if (
+      Object.keys(frankRates).length === 0 &&
+      Object.keys(exchangeRates).length === 0
+    ) {
+      throw new Error("All rate providers are currently unavailable");
+    }
 
     // merge both apis
     const bestRate: Record<string, number> = {};
@@ -90,12 +140,17 @@ const getAllRates = async (): Promise<RateResponse> => {
       }
     }
 
+    const availableSources = [
+      ...(Object.keys(frankRates).length > 0 ? ["frankfurter"] : []),
+      ...(Object.keys(exchangeRates).length > 0 ? ["exchangeRateAPI"] : []),
+    ];
+
     return {
       success: true,
       baseCurrency: "USD",
       count: Object.keys(bestRate).length,
       rates: bestRate,
-      source: ["frankfurter", "exchangeRateAPI"],
+      source: availableSources,
       lastUpdated: new Date().toISOString(),
     };
   } catch (error) {

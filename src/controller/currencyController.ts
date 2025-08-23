@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from "express";
-import logger from "../utils/logger";
 import {
   convertCurrency,
   getAllCurrencies,
@@ -62,8 +61,8 @@ const getAllServicesRates = asyncHandler(
       throw new ApiError("No data received from getAllRates", 404);
     }
 
-    //Save in cache 12h
-    await req.redisClient.setex(cacheKey, 43200, JSON.stringify(result));
+    //Save in cache 10mins since rates change more frequently
+    await req.redisClient.setex(cacheKey, 600, JSON.stringify(result));
 
     res.status(200).json({
       success: true,
