@@ -5,6 +5,7 @@ import {
   getAllCurrencies,
   getAllRates,
 } from "../services/allServices";
+import type { ConversionRequest } from "../types";
 
 ///FOR GETTING SUPPORTED CURENCIES
 const getAllServiceCurrencies = async (req: Request, res: Response) => {
@@ -95,7 +96,10 @@ const getAllServicesRates = async (req: Request, res: Response) => {
 };
 
 ////// CONVERTING CURRENCY
-const convertAllCurrency = async (req: Request, res: Response) => {
+const convertAllCurrency = async (
+  req: Request<{}, {}, ConversionRequest>,
+  res: Response
+) => {
   try {
     const { amount, from, to } = req.body;
     const { rates } = await getAllRates();

@@ -1,4 +1,3 @@
-import axios from "axios";
 import { handleApiError } from "../middleware/errorHandler";
 import {
   getExchangeRates,
@@ -8,8 +7,13 @@ import {
   getFrankRates,
   getSupportedCurrenciesFrankFurter,
 } from "./frankfurterservice";
+import type {
+  ConversionResponse,
+  CurrencyResponse,
+  RateResponse,
+} from "../types";
 
-const getAllCurrencies = async () => {
+const getAllCurrencies = async (): Promise<CurrencyResponse> => {
   try {
     // fetch from Frankfurter
     const frankfurterResult = await getSupportedCurrenciesFrankFurter();
@@ -50,7 +54,7 @@ const getAllCurrencies = async () => {
       success: true,
       count: Object.keys(uniqueCurrencies).length,
       currencies: uniqueCurrencies,
-      sources: ["frankfurter", "exchangeRateAPI"],
+      source: ["frankfurter", "exchangeRateAPI"],
       lastUpdated: new Date().toISOString(),
     };
   } catch (err: any) {
@@ -58,7 +62,7 @@ const getAllCurrencies = async () => {
   }
 };
 
-const getAllRates = async () => {
+const getAllRates = async (): Promise<RateResponse> => {
   try {
     ///from frankfurter
     const frankfurterResult = await getFrankRates();
@@ -91,7 +95,7 @@ const getAllRates = async () => {
       baseCurrency: "USD",
       count: Object.keys(bestRate).length,
       rates: bestRate,
-      sources: ["frankfurter", "exchangeRateAPI"],
+      source: ["frankfurter", "exchangeRateAPI"],
       lastUpdated: new Date().toISOString(),
     };
   } catch (error) {
@@ -107,7 +111,7 @@ const convertCurrency = (
   from: string,
   to: string,
   rates: Record<string, number>
-) => {
+): ConversionResponse => {
   if (!rates[from] || !rates[to]) {
     throw new Error("Unsupported currency");
   }
