@@ -6,10 +6,12 @@ import {
   getAllRates,
 } from "../services/allServices";
 import type { ConversionRequest } from "../types";
+import { asyncHandler } from "../middleware/errorHandler";
+import { ApiError } from "../utils/errors";
 
 ///FOR GETTING SUPPORTED CURENCIES
-const getAllServiceCurrencies = async (req: Request, res: Response) => {
-  try {
+const getAllServiceCurrencies = asyncHandler(
+  async (req: Request, res: Response) => {
     const cacheKey = "supported:currencies";
 
     //try cache first
@@ -26,10 +28,7 @@ const getAllServiceCurrencies = async (req: Request, res: Response) => {
     const result = await getAllCurrencies();
 
     if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: "No data received from getAllCurrencies",
-      });
+      throw new ApiError("No data received from getAllCurrencies", 404);
     }
 
     //Save in cache 12h
@@ -40,21 +39,12 @@ const getAllServiceCurrencies = async (req: Request, res: Response) => {
       message: "Successfully retrieved supported currencies",
       data: result,
     });
-  } catch (error: any) {
-    logger.error("💥 Controller Error:", error.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve supported currencies",
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    });
   }
-};
+);
 
 ////FOR GETTIONG ALL RATES
-const getAllServicesRates = async (req: Request, res: Response) => {
-  try {
+const getAllServicesRates = asyncHandler(
+  async (req: Request, res: Response) => {
     const cacheKey = "rates";
 
     //try cache first
@@ -69,10 +59,7 @@ const getAllServicesRates = async (req: Request, res: Response) => {
 
     const result = await getAllRates();
     if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: "No data received from getAllCurrencies",
-      });
+      throw new ApiError("No data received from getAllRates", 404);
     }
 
     //Save in cache 12h
@@ -83,26 +70,18 @@ const getAllServicesRates = async (req: Request, res: Response) => {
       message: "Successfully retrieved supported currencies",
       data: result,
     });
-  } catch (error: any) {
-    logger.error("💥 Controller Error:", error.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve currencies rates",
-      error: error.message,
-      timestamp: new Date().toISOString(),
-    });
   }
-};
+);
 
 ////// CONVERTING CURRENCY
-const convertAllCurrency = async (
-  req: Request<{}, {}, ConversionRequest>,
-  res: Response
-) => {
-  try {
+const convertAllCurrency = asyncHandler(
+  async (req: Request<{}, {}, ConversionRequest>, res: Response) => {
     const { amount, from, to } = req.body;
     const { rates } = await getAllRates();
+
+    if (!rates[from] || !rates[to]) {
+      throw new ApiError("Unsupported currency", 400);
+    }
 
     const result = convertCurrency(amount, from, to, rates);
 
@@ -111,13 +90,7 @@ const convertAllCurrency = async (
       message: "Currency conversion successful",
       data: result,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: "Currency conversion failed",
-      error: error.message,
-    });
   }
-};
+);
 
 export { getAllServiceCurrencies, getAllServicesRates, convertAllCurrency };

@@ -10,7 +10,7 @@ const client = axios.create({
 
 const getSupportedCurrenciesFrankFurter = async () => {
   try {
-    const url = `${config.apis.frankfuter.baseUrl}/currencies`;
+    const url = `${config.apis.frankfurter.baseUrl}/currencies`;
 
     logger.info(`📡 Fetching supported currencies from: ${url}`);
 
@@ -38,7 +38,7 @@ const getSupportedCurrenciesFrankFurter = async () => {
 const getFrankRates = async (baseCurrency = "USD") => {
   try {
     const url = `${
-      config.apis.frankfuter.baseUrl
+      config.apis.frankfurter.baseUrl
     }/latest?base=${baseCurrency.toLocaleUpperCase()}`;
 
     const response = await client.get(url);

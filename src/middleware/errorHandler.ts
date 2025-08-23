@@ -1,11 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
-import {
-  ApiError,
-  ValidationError,
-  UnauthorizedError,
-  ConflictError,
-} from "../utils/errors";
+import { ApiError, ValidationError, UnauthorizedError } from "../utils/errors";
 import logger from "../utils/logger";
+import type { ApiErrorResponse } from "../types";
 
 interface ExtendedError extends Error {
   statusCode?: number;
@@ -101,16 +97,25 @@ const errorHandler = (
 
   // Production mode
   if (error.isOperational) {
-    return res.status(statusCode).json({
+    const apiError: ApiErrorResponse = {
       success: false,
       message: error.message || "An error occurred",
-      ...(error.errors && { errors: error.errors }),
-    });
+      error: error.name || "Error",
+      timestamp: new Date().toISOString(),
+      statusCode,
+    };
+
+    return res.status(statusCode).json(apiError);
   } else {
-    return res.status(500).json({
+    const apiError: ApiErrorResponse = {
       success: false,
       message: "Something went wrong on our end. Please try again later.",
-    });
+      error: "InternalServerError",
+      timestamp: new Date().toISOString(),
+      statusCode: 500,
+    };
+
+    return res.status(500).json(apiError);
   }
 };
 
