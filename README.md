@@ -152,3 +152,86 @@ Response:
 }
 ```
 ````
+
+2. Get Exchange Rates
+   Get current exchange rates for all currencies (base: USD).
+
+````md
+```bash
+GET /currencies/rates
+```
+````
+
+Response:
+
+````md
+```bash
+{
+"success": true,
+"message": "Successfully retrieved exchange rates",
+"data": {
+"success": true,
+"baseCurrency": "USD",
+"count": 170,
+"rates": {
+"USD": 1,
+"EUR": 0.92,
+"GBP": 0.79,
+"NGN": 1600,
+"JPY": 149.50,
+...
+},
+"sources": ["exchangerate-api", "frankfurter"],
+"lastUpdated": "2024-01-05T10:30:00.000Z"
+}
+}
+```
+````
+
+3. Convert Currency
+   Convert an amount from one currency to another.
+
+````md
+```bash
+POST /currencies/convert
+Content-Type: application/json
+```
+````
+
+Request Body:
+
+````md
+```bash
+{
+  "amount": 100,
+  "from": "USD",
+  "to": "EUR"
+}
+```
+````
+
+Response:
+
+````md
+```bash
+{
+  "success": true,
+  "message": "Currency conversion successful",
+  "data": {
+    "amount": 100,
+    "from": "USD",
+    "to": "EUR",
+    "converted": 92,
+    "rate": 0.92,
+    "timestamp": "2024-01-05T10:30:00.000Z"
+  }
+}
+```
+````
+
+### Validation Rules:
+
+- amount: Must be a positive number between 0.01 and 1,000,000
+- from: Valid 3-letter ISO 4217 currency code
+- to: Valid 3-letter ISO 4217 currency code
+- from and to must be different currencies
